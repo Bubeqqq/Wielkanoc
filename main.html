@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easter Quiz Game</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #fff9c4, #f8bbd0);
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: #ec407a;
+    }
+    .quiz-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 2rem;
+      max-width: 600px;
+      margin: 2rem auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    input {
+      padding: 0.5rem;
+      border: 2px solid #ce93d8;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #ba68c8;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #ab47bc;
+    }
+    .answer-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .letter-box {
+      background: #f48fb1;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 1rem;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: transform 0.5s ease, background-color 0.5s ease;
+    }
+    .letter-box.animate {
+      transform: scale(1.2);
+      background-color: #ffccbc;
+    }
+    .correct {
+      color: green;
+      font-size: 1.2rem;
+      margin-top: 1rem;
+    }
+    .answer-bar {
+        position: relative;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .letter-box {
+    position: absolute;
+    transition: all 1s ease-in-out;
+    }
+    .final {
+      font-size: 2rem;
+      color: #ec407a;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌸 Poszukiwanie Prezentu 🐣</h1>
+  <div class="quiz-box">
+    <div id="questionBox"></div>
+    <div>
+      <input type="text" id="answerInput" placeholder="Podaj swoją odpowiedź...">
+      <button onclick="checkAnswer()">Spróbuj</button>
+    </div>
+    <div class="Dobrze" id="feedback"></div>
+    <div class="answer-bar" id="answerBar"></div>
+    <div id="revealSection"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        question: "Co myślę, że jest ulubioną rzeczą Oli?",
+        answer: "KSIĄŻKA",
+        takeIndexes: [4],
+        putIndexes: [1],
+      },
+      {
+        question: "Szkodnik w Połomii?",
+        answer: "ROBERT",
+        takeIndexes: [3],
+        putIndexes: [0],
+      },
+      {
+        question: "Emotka na naszym czacie?",
+        answer: "KACZKA",
+        takeIndexes: [1],
+        putIndexes: [2],
+      },
+      {
+        question: "Czego użyje w lany poniedziałek?",
+        answer: "WIADRA",
+        takeIndexes: [4],
+        putIndexes: [3],
+      },
+      {
+        question: "Kogo najbardziej nie lubię?",
+        answer: "STYCZEŃ",
+        takeIndexes: [1, 5],
+        putIndexes: [6, 5],
+      },
+      {
+        question: "Jak mam zapisany twój numer telefonu?",
+        answer: "BARANEK BOŻY",
+        takeIndexes: [0, 9],
+        putIndexes: [8, 7],
+      },
+      {
+        question: "Co masz najbardziej wartościowego, co jest moje?",
+        answer: "MEDAL",
+        takeIndexes: [4],
+        putIndexes: [10],
+      },
+      {
+        question: "Kto ściągnął skarpety w nocy?",
+        answer: "ALEKSANDRA",
+        takeIndexes: [2, 8],
+        putIndexes: [9, 11],
+      },
+    ];
+
+    const finalAnswerOrder = [10, 0, 1, 5, 4, 11, 7, 8, 9, 3, 6, 2];
+    const answerBar = Array(12).fill("_");
+    let current = 0;
+
+    const questionBox = document.getElementById("questionBox");
+    const answerInput = document.getElementById("answerInput");
+    const answerBarDiv = document.getElementById("answerBar");
+    const feedback = document.getElementById("feedback");
+    const revealSection = document.getElementById("revealSection");
+
+    function renderQuestion() {
+      if (current < questions.length) {
+        questionBox.innerHTML = `<p>${questions[current].question}</p>`;
+      } else {
+        questionBox.innerHTML = "";
+        revealSection.innerHTML = `<button onclick=\"revealAnswer()\">Pokaż Odpowiedź</button>`;
+      }
+    }
+
+    function renderBar() {
+        answerBarDiv.innerHTML = '';
+        const boxWidth = 50;
+        answerBar.forEach((l, i) => {
+            const box = document.createElement("div");
+            box.className = "letter-box";
+            box.id = `box-${i}`;
+            box.textContent = l;
+            box.style.left = `${i * boxWidth}px`;
+            answerBarDiv.appendChild(box);
+        });
+    }
+
+
+    function checkAnswer() {
+        const input = answerInput.value.toUpperCase();
+        const q = questions[current];
+
+        if (input === q.answer.toUpperCase()) {
+            feedback.textContent = "Dobrze!";
+            answerInput.value = "";
+
+            // Animate each letter into place
+            q.takeIndexes.forEach((i, idx) => {
+            const letter = q.answer[i];
+            const targetIndex = q.putIndexes[idx];
+
+            // Create animated letter
+            const animatedLetter = document.createElement("div");
+            animatedLetter.className = "letter-box";
+            animatedLetter.textContent = letter;
+            animatedLetter.style.position = "absolute";
+            animatedLetter.style.left = answerInput.offsetLeft + "px";
+            animatedLetter.style.top = answerInput.offsetTop + "px";
+            animatedLetter.style.zIndex = 10;
+            animatedLetter.style.transition = "all 1s ease-in-out";
+
+            document.body.appendChild(animatedLetter);
+
+            // Calculate destination
+            const targetBox = document.getElementById(`box-${targetIndex}`);
+            const rectStart = animatedLetter.getBoundingClientRect();
+            const rectEnd = targetBox.getBoundingClientRect();
+
+            const deltaX = rectEnd.left - rectStart.left;
+            const deltaY = rectEnd.top - rectStart.top;
+
+            requestAnimationFrame(() => {
+                animatedLetter.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+                animatedLetter.style.opacity = 0.5;
+            });
+
+            // After animation completes, update the actual bar
+            setTimeout(() => {
+                answerBar[targetIndex] = letter;
+                renderBar();
+                document.body.removeChild(animatedLetter);
+            }, 1000);
+            });
+
+            // Delay moving to next question
+            setTimeout(() => {
+            feedback.textContent = "";
+            current++;
+            renderQuestion();
+            }, 1200);
+
+        } else {
+            feedback.textContent = "Spróbuj ponownie!";
+            answerInput.value = "";
+        }
+    }
+
+    function revealAnswer() {
+        const positions = [];
+
+        // Store current letters and their positions
+        for (let i = 0; i < answerBar.length; i++) {
+            const box = document.getElementById(`box-${i}`);
+            if (box) {
+            positions.push({ letter: answerBar[i], element: box, from: i });
+            }
+        }
+
+        // Clear old state and prepare reordered letters
+        const reordered = Array(12).fill(null);
+        finalAnswerOrder.forEach((fromIdx, toIdx) => {
+            reordered[toIdx] = answerBar[fromIdx];
+        });
+
+        answerBarDiv.innerHTML = ''; // clear for reinsert
+        const boxWidth = 50;
+
+        // Animate each letter to its new place
+        reordered.forEach((letter, newIndex) => {
+            const box = document.createElement("div");
+            box.className = "letter-box";
+            box.textContent = letter;
+            box.style.left = `${newIndex * boxWidth}px`;
+            box.style.opacity = 0;
+            answerBarDiv.appendChild(box);
+
+            // Find original element that had this letter
+            const origin = positions.find(p => p.letter === letter && !p.used);
+            if (origin) {
+            origin.used = true; // mark used
+            box.style.transform = `translate(${(origin.from - newIndex) * boxWidth}px, 0)`;
+            requestAnimationFrame(() => {
+                box.style.transition = "transform 1s ease-in-out, opacity 1s";
+                box.style.transform = `translate(0, 0)`;
+                box.style.opacity = 1;
+            });
+            }
+        });
+
+        revealSection.innerHTML = `<div class='final'>🎉 Ostatecznie: ${reordered.join('')} 🎉</div>`;
+        answerBar.splice(0, answerBar.length, ...reordered); // update final bar
+    }
+
+    renderQuestion();
+    renderBar();
+  </script>
+</body>
+</html>
